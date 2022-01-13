@@ -92,3 +92,65 @@ Je déclare mon groupe de sécurité (aws_security_group). J'expose mes ressourc
 Ensuite je crée mon fichier credential.txt dans le dossier terraform-files.
 
 Dans la partie jenkins, je crée une pipeline pour créer une instance aws (terraform.groovy), une pipeline initialiser terraform et une pipeline pour détruire mon instance terraform.
+
+  ## Ansible
+
+Objectif :
+
+ Une pipeline jenkins permettant la configuration de l’instance via ansible.
+Le code ansible devra donc permettre via l’utilisateur deploy créé dans la partie IaC :
+- D’installer java 11
+- De créer un user java_user pour le lancement de l’application java (jar)
+- D’installer le jar
+https://github.com/Ozz007/sb3t/releases/download/1.0/sb3t-ws-1.0.jar sur le serveur
+- De lancer l'application java (jar) avec la configuration suivante:
+- Taille de la jvm 128MB
+- De s’assurer que le port d’écoute de l’application est bien en écoute par notre
+application et accessible depuis l’ip publique de notre VM
+- L’API health de l’application doit être accessible : http://IP_PUBLIQUE_AWS:8080/api/actuator/health
+
+Explication :
+
+On initialize notre galaxy grace à la commande : ansible-galaxy init JavaCac. Dans notre dossier vars on ajouter nos variables contenant le path du jar, le nom du jar, la taille de la jvm... Dans notre dossier tasks, on déclare nos tasks permettant d'installer java,
+
+```
+- name: Install java
+  become: yes
+  yum:
+    name: java-11-openjdk
+```
+
+créer un utilisateur pour le lancement application,
+
+```
+- name: Create User java
+  become: yes
+  ansible.builtin.user:
+    name: java_user
+    comment: User java
+    group: admin
+    password: $2y$10$WFcmKfaWY/LaKYXFXZXVyuXBnYq9S2wm4xRNTA0nKuYwg6fHwE.lu
+```
+
+on télécharge l'application java,
+
+```
+- name: download java app
+  become: yes
+  get_url:
+    url: https://github.com/Ozz007/sb3t/releases/download/1.0/sb3t-ws-1.0.jar
+    dest: /home/java_user/
+```
+
+et on lance l'application.
+
+```
+- name: Run Jar
+  shell: 'java -jar {{ JAR_PATH }}/{{ JAR_NAME }} -Xmx{{ JVM_SIZE }}'
+  become_user : '{{ USER_NAME }}'
+  async: 100
+```
+
+On peut lancer nos taches ainsi créées grace à notre playbook.
+
+La pipeline jenkins nous permet de configurer l'instance.
