@@ -30,3 +30,65 @@ stage('testunit') {
     }
 }
 ```
+
+  ## Terraform
+  
+Objectif :
+
+Une pipeline jenkins permettant de générer une instance aws créée et explicitée via
+Terraform.
+Le code Terraform devra donc permettre de déclarer :
+- Une instance aws.
+- Une clef ssh qui sera automatiquement rapatriée dans l’instance.
+- (Optionnel) Un disque de data supplémentaire.
+- Un security group permettant l’ouverture au protocol ssh et aux ports 22/8080 de
+notre application en entrée et vers tout le monde en sortie.
+- Cloud init pour la création d’un user deploy et l’installation du paquet python si
+nécessaire
+
+Explication :
+
+Dans le dossier ssh je crée mon couple de clefs ssh. Dans mon fichier 'main.tf', je déclare les paramètres d'aws :
+
+```
+provider "aws" {
+  profile                 = "default"
+  region                  = "us-east-2"
+  shared_credentials_file = "credential.txt"
+}
+```
+
+Je définis mon instance d'aws :
+
+```
+resource "aws_instance" "app_server" {
+  ami           = "ami-0d97ef13c06b05a19"
+  instance_type = "t2.micro"
+  user_data = data.template_file.user_data.rendered
+  key_name = "deployer-keys-chometon"
+  vpc_security_group_ids = [ aws_security_group.sg_default.id ]
+  associate_public_ip_address = true
+
+  tags = {
+    Name   = "chometon-app"
+    groups = "app"
+    owner  = "matthias-chometon"
+  }
+}
+```
+
+Je déclare ma paire de clef ssh :
+
+```
+resource "aws_key_pair" "deployer" {
+  key_name = "deployer-keys-chometon"
+  public_key = file("./ssh/id_rsa.pub")
+}
+
+```
+
+Je déclare mon groupe de sécurité (aws_security_group). J'expose mes ressources grace à mes output.
+
+Ensuite je crée mon fichier credential.txt dans le dossier terraform-files.
+
+Dans la partie jenkins, je crée une pipeline pour créer une instance aws (terraform.groovy), une pipeline initialiser terraform et une pipeline pour détruire mon instance terraform.
