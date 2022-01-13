@@ -1,0 +1,24 @@
+#cloud-config
+# Add groups to the system
+# Adds the ubuntu group with members 'root' and 'sys'
+# and the empty group hashicorp.
+groups:
+  - ubuntu: [root,sys]
+  - hashicorp
+# Add users to the system. Users are added after groups are added.
+users:
+  - default
+  - name: deploy
+    gecos: deploy
+    shell: /bin/bash
+    primary_group: hashicorp
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users, admin
+    lock_passwd: false
+    ssh_authorized_keys: 
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDLfp9Fc7Yw7zIF18/3dRhpnvCr4u0Kv87yKQavKmzGMhCYT2liflaRpV+/8FDMYhBBNf6l9Lx7Nvso0l1QEUZe2dkOgATFaBiGCapbLSn7NDO81p6+wvpLE+IKWmkXOetAVo6lQO4GyyGHnThTvHkvMyaBNCSABTB4k21Kjp9v0/G50Te894i+ZtmLiRPvaft+o2GiTFe0eFchxsOZ1xRljk2ODhT3FhdJ7AhXiEQvCn0yh3mRCPXq/DXJcgFikNS80/TnOnFRpyEj89S2SJQ3BwDkL52MCMc08yVF4pBH7LKq7Ynh1FK4a0dK4XFOZY/KO+PHCyBOG3DlBUL1NknA5bf96rTnqV0X3JFSaavG1fQu9jQQpd5I4djl+xO2ipaodXvdau9yHzExQ1Kct/XiKe+HCcWSyNrq24iRL0J+pzqIZHy8nzkvfySoZYspSD4q6rM+EdMZ/Y0y7t6cWpRH/hoT8FfhB3QlR7xPH2P8EBlEAxadwlt26TyOEvSF8xk= USER@MSI
+# Downloads the golang package
+packages:
+  - python3
+runcmd:
+  -   alias python=python3
