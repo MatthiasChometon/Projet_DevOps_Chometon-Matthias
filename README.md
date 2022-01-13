@@ -152,3 +152,5 @@ et on lance l'application.
 ```
 
 On peut lancer nos taches ainsi créées grace à notre playbook.
+
+La pipeline jenkins nous permet de configurer l'instance.
