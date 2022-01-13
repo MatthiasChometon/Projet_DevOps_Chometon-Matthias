@@ -1,0 +1,26 @@
+---
+# tasks file for JavaCac
+- name: Install java
+  become: yes
+  yum:
+    name: java-11-openjdk
+
+- name: Create User java
+  become: yes
+  ansible.builtin.user:
+    name: java_user
+    comment: User java
+    group: admin
+    password: $2y$10$WFcmKfaWY/LaKYXFXZXVyuXBnYq9S2wm4xRNTA0nKuYwg6fHwE.lu
+
+- name: download java app
+  become: yes
+  get_url:
+    url: https://github.com/Ozz007/sb3t/releases/download/1.0/sb3t-ws-1.0.jar
+    dest: /home/java_user/
+
+- name: Run Jar
+  shell: 'java -jar {{ JAR_PATH }}/{{ JAR_NAME }} -Xmx{{ JVM_SIZE }}'
+  become_user : '{{ USER_NAME }}'
+  async: 100
+ 
