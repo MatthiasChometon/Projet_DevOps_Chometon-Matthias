@@ -1,0 +1,8 @@
+---
+# vars file for JavaCac
+JAVA_VERSION : "openjdk-11-jdk"
+USER_NAME : "java_user"
+JAR_PATH : "/home/java_user/"
+JAR_NAME : "sb3t-ws-1.0.jar"
+JVM_SIZE : "128M"
+HOST_IP : "localhost"
